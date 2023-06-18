@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block container %}
+<form method="POST">
+    <div class="form-group">
+        <input maxlength="64" type="text" name="content" placeholder="输入反馈">
+    </div>
+    <button type="submit" class="btn-primary">提交</button>
+</form>
+<h2>已发送的反馈</h2>
+<ul class="qnc-ul">
+    {% for issue in issues %}
+    <li>{{issue}}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block container %}
+{% for img in imgs %}
+<h2>{{img.title}}</h2>
+<img class="qnc-img" src="https://bing.com{{img.url}}">
+<p style="text-align: center;">{{img.copyright}}</p>
+{% endfor %}
+
+{% endblock %}

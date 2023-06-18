@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test页面</title>
+</head>
+
+<body>
+
+    <script type="text/javascript" src="../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/check/qiniu.min.js"></script>
+
+    <button>提交</button>
+
+    <script>
+        jQuery.ajax({
+            type: "POST",
+            url: "http://third.172.16.11.49.xip.io/wq.php/Record/wrongQuestion",
+            data: { "roomid": "111" },
+            success: function (res) {
+                console.log(res);
+            }
+        });
+
+    </script>
+</body>
+
+</html>

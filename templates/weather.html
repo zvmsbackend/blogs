@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block container %}
+<style>
+body {
+  background-color: #f2f2f2;
+  font-family: Arial, sans-serif;
+}
+h1 {
+  color: #333;
+  font-size: 2.5rem;
+  text-align: center;
+}
+p {
+  color: #666;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+li {
+  margin-bottom: 1rem;
+}
+li strong {
+  font-weight: bold;
+}
+li ul li {
+  margin-bottom: 0.5rem;
+}
+li ul li strong {
+  font-weight: normal;
+}
+
+li:hover ul {
+  display: block;
+}
+</style>
+
+
+<h1>{{location}}的天气</h1>
+<h2>当前天气</h2>
+<ul class="current-weather">
+    <li>气温: {{currentCondition.currentTemperature}}</li>
+    <li>体感温度: {{currentCondition.feels}}</li>
+    <li>湿度: {{currentCondition.humidity}}</li>
+    <li>气压: {{currentCondition.baro}}</li>
+    <li>天气: {{currentCondition.shortCap}}</li>
+    <li>风向: {{currentCondition.windDesc}}</li>
+    <li>风速: {{currentCondition.windSpeed}}</li>
+    <li>可见度: {{currentCondition.visiblity}}</li>
+    <li>AQI: {{currentCondition.aqi}}</li>
+    <li>空气质量: {{currentCondition.aqiSeverity}}</li>
+    <li>污染物: {{currentCondition.primaryPollutant}}</li>
+</ul>
+<h2>天气预报</h2>
+{% for i in forecast %}
+<h3>{{i.dayTextLocaleString}}</h3>
+<ul class="weather-forecast">
+    <li>最高温度: {{i.highTemperature}}</li>
+    <li>最低温度: {{i.lowTemperature}}</li>
+    <li>最高湿度: {{i.humidityHi}}</li>
+    <li>最低湿度: {{i.humidityLow}}</li>
+    <li>降雨量: {{i.rainAmount}}</li>
+    <li>风速: {{i.windSpeed}}{{i.windSpeedUnit}}</li>
+    <li>日出时间: {{datetime.fromisoformat(i.almanac.sunrise).strftime('%H %M %S')}}</li>
+    <li>日落时间: {{datetime.fromisoformat(i.almanac.sunset).strftime('%H %M %S')}}</li>
+    <li>月相: {{i.almanac.moonPhase}}</li>
+    {% for time, data in zip(['白天', '夜间'], i.dayNightSummaries.dataValue) %}
+    <li>{{time}}: {{' '.join(data[1])}}</li>
+    {% endfor %}
+    {% if i.hourly %}
+    <li>小时预报
+        <ul class="hourly-forecast">
+            {% for j in i.hourly %}
+            <li><strong>{{datetime.fromisoformat(j.timeStr).strftime('%H')}}时</strong></li>
+            <li>温度: {{j.temperature}}</li>
+            <li>体感温度: {{j.feels}}</li>
+            <li>湿度: {{j.humidity}}</li>
+            <li>气压: {{j.airPressure}}{{j.pressureUnit}}</li>
+            <li>天气: {{j.cap}}</li>
+            <li>风向: {{j.windDesc}}</li>
+            <li>风速: {{j.windSpeed}}{{j.windSpeedUnit}}</li>
+            <li>云层覆盖率: {{j.cloudCover}}</li>
+            <li>可见度: {{j.vis}}</li>
+            {% endfor %}
+        </ul>
+    </li>
+    {% endif %}
+</ul>
+{% endfor %}
+<h4>{{nowcasting.summary}}</h4>
+{% if alertsInfo %}
+<h2>警告</h2>
+<h5>{{alertsInfo.title}}</h5>
+<p>{{alertsInfo.safetyGuide}}</p>
+<p>来自{{alertsInfo.crefit}}</p>
+{% endif %}
+<p>最后更新于{{datetime.fromisoformat(lastUpdated).strftime('%Y %m %y %H %M %S')}}</p>
+
+{% endblock %}

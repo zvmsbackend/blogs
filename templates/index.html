@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block container %}
+
+<style>
+    .login-link {
+        position: absolute;
+        top: 0;
+        left: 0;
+        margin: 10px;
+        font-size: 20px;
+        text-decoration: none;
+    }
+    .logout-link {
+        position: absolute;
+        top: 20;
+        left: 0;
+        margin: 10px;
+        font-size: 20px;
+    }
+</style>
+{% if name %}
+<span class="login-link">{{name}}</span>
+<a href="/logout" class="logout-link">登出</a>
+{% else %}
+<a href="/login" class="login-link">登录</a>
+{% endif %}
+<h1 class="index-h1">蚯鲇蜍的工具箱</h1>
+<ul class="index-ul">
+    <li><a href="/query">必应词典</a></li>
+    <li><a href="/word">单词分享</a></li>
+    <li><a href="/3500">3500词</a></li>
+    <li><a href="/wenyan">汉语词典</a></li>
+    <li><a href="/saying">每日一言</a></li>
+</ul>
+<ul class="index-ul">
+    <li><a href="/birthday">生日祝福</a></li>
+    <li><a href="/news">新闻联播</a></li>
+    <li><a href="/wallpapers">必应壁纸</a></li>
+    <li><a href="/static/calc/index.html">计算器</a></li>
+    <li><a href="/static/drawingboard/index.html">几何画板</a></li>
+    <li><a href="/weather">MSN天气</a></li>
+</ul>
+<ul class="index-ul">
+    <li><a href="/notices">查看通知</a></li>
+    <li><a href="/issues">发送反馈</a></li>
+    {% if admin %}
+    <li><a href="/admin">后台管理</a></li>
+    {% endif %}
+</ul>
+
+{% endblock %}

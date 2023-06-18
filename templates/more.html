@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block container %}
+<ul class="qnc-ul">
+    {% for i in more %}
+    <li>{{i}}</li>
+    {% endfor %}
+</ul>
+<ul class="qnc-ul" style="margin-top: 20px">
+    {% for i in pages %}
+    <li style="display: inline"><a class="qnc-a" href="/more?word={{word}}&offset={{i}}">{{i}}</a></li>
+    {% endfor %}
+</ul>
+<form class="search-form">
+    <input type="hidden" name="word" value="{{word}}">
+    <input type="text" name="offset" placeholder="跳转到页数">
+    <button>确定</button>
+</form>
+{% endblock %}

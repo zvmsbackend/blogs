@@ -1,0 +1,15 @@
+#lang xml
+
+<if>
+    <test><name>a</name></test>
+    <body>
+        <expr>
+            <name>b</name>
+        </expr>
+    </body>
+    <orelse>
+        <expr>
+            <name>c</name>
+        </expr>
+    </orelse>
+</if>

@@ -1,0 +1,403 @@
+.search-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.search-form input[type="text"] {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+    font-size: 16px;
+    width: 300px;
+}
+
+.search-form button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+
+.search-form input[type="checkbox"] {
+    display: block;
+    margin-right: 10px;
+}
+
+.words-3500 ul {
+    display: none;
+}
+
+.words-3500 ul li {
+    list-style: none;
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.words-3500 ul li:hover {
+    background-color: #f5f5f5;
+}
+
+.words-3500 ul li .content {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.words-3500 ul li.active .content {
+    display: block;
+}
+
+.words-3500 h2 {
+    font-size: 36px;
+    color: #007bff;
+    text-shadow: 2px 2px #ccc;
+    margin-bottom: 20px;
+    background: linear-gradient(to right, #007bff, #00ff00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.words-3500 div {
+    margin-left: 20px;
+}
+
+.words-3500 div:hover ul {
+    display: block;
+}
+
+.words-3500 a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+}
+
+.words-3500 a:hover {
+    color: #00ff00;
+    text-shadow: 2px 2px #ccc;
+}
+
+.index-ul a {
+    color: black;
+    text-decoration: none;
+    font-size: 24px;
+    padding: 10px;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+.index-ul a:hover {
+    background-color: black;
+    color: white;
+}
+
+.index-ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.index-ul li {
+    margin: 10px;
+}
+
+.index-h1 {
+    color: blue;
+    font-size: 36px;
+    text-align: center;
+}
+
+.birthday-h1 {
+    color: #333;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.birthday-p {
+    color: #666;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.birthday-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.birthday-form input {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+    margin-bottom: 1rem;
+}
+
+.birthday-form button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    background-color: #333;
+    color: #fff;
+    cursor: pointer;
+}
+
+.birthday-form button:hover {
+    background-color: #555;
+}
+
+.birthday-ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.birthday-ul li {
+    margin-bottom: 0.5rem;
+    width: 30%;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background-color: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.qnc-a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.qnc-a:hover {
+    text-decoration: underline;
+}
+
+.qnc-ul {
+    list-style: none;
+    margin: 0;
+}
+
+.qnc-ul li {
+    margin-bottom: 10px;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.news-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.news-div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 80%;
+}
+
+.news-h3 {
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+.news-h4 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+.news-ul {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.news-ul li {
+    width: 100%;
+    font-size: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.qnc-strong {
+    font-weight: bold;
+    color: #007bff;
+    padding: 0;
+}
+
+blockquote {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    border-left: 5px solid #ccc;
+    padding-left: 10px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.qnc-i {
+    font-size: 18px;
+    color: #666;
+}
+
+.qnc-img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+    width: 75%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+
+.weather-forecast,
+.hourly-forecast {
+    cursor: pointer;
+    display: block;
+    margin-bottom: 1rem;
+    padding-left: 1rem;
+    position: relative;
+    font-family: Arial, sans-serif;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.weather-forecast:before,
+.hourly-forecast:before {
+    content: "+";
+    display: inline-block;
+    font-size: 1.5rem;
+    left: 0;
+    position: absolute;
+    top: 0;
+    transform: rotate(0deg);
+    transition: transform 0.3s ease-in-out;
+}
+
+.weather-forecast.collapsed:before,
+.hourly-forecast.collapsed:before {
+    transform: rotate(-90deg);
+}
+
+.weather-forecast ul,
+.hourly-forecast ul {
+    display: none;
+}
+
+.weather-forecast.collapsed ul,
+.hourly-forecast.collapsed ul {
+    display: none;
+}
+
+.current-weather {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    padding: 1rem;
+    font-family: Arial, sans-serif;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.current-weather li {
+    margin-right: 2rem;
+}
+
+.weather-forecast {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    padding: 1rem;
+    font-family: Arial, sans-serif;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.weather-forecast li {
+    margin-right: 2rem;
+}
+
+.hourly-forecast {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    padding: 1rem;
+    font-family: Arial, sans-serif;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.hourly-forecast li {
+    margin-right: 2rem;
+}
+
+ 
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.form-group label {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="number"] {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.btn-primary {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background-color: #00ff00;
+}
+
+

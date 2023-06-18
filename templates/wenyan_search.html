@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block container %}
+<h2>共有{{count}}项符合搜索的结果</h2>
+<ul class="qnc-ul">
+    {% for i in items %}
+    <li><a class="qnc-a" href="/wenyan?word={{i}}">{{i}}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

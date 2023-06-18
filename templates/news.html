@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block container %}
+<div class="news-body">
+    <h1 style="text-align: center;">新闻联播(镇中分台)</h1>
+    <div class="news-div">
+        <h3 class="news-h3">要闻</h3>
+        <ul class="news-ul">
+            {% for i in focus %}
+            <li>{{i}}</li>
+            {% endfor %}
+        </ul>
+        <h4 class="news-h4">社会新闻</h4>
+        <ul class="news-ul">
+            {% for i in social %}
+            <li>{{i}}</li>
+            {% endfor %}
+        </ul>
+        <h4 class="news-h4">国际新闻</h4>
+        <ul class="news-ul">
+            {% for i in global %}
+            <li>{{i}}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="news-div">
+        <h3 class="news-h3">新闻频道</h3>
+        <ul class="news-ul">
+            {% for i in channels %}
+            <li>{{i}}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

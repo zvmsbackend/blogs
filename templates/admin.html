@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block container %}
+<form method="POST" style="margin-bottom: 50px">
+    <div class="form-group">
+        <input type="hidden" name="task" value="next-saying">
+    </div>
+    <button type="submit" class="btn-primary">更换每日一言</button>
+</form>
+<form method="POST">
+    <div class="form-group">
+        <input type="hidden" name="task" value="edit-saying">
+        <input type="text" name="hitokoto" placeholder="hitokoto">
+        <input type="text" name="from_who" placeholder="from_who">
+        <input type="text" name="from" placeholder="from">
+    </div>
+    <button type="submit" class="btn-primary">编辑每日一言</button>
+</form>
+<form method="POST" style="margin-bottom: 50px;">
+    <div class="form-group">
+        <input type="hidden" name="task" value="send-notice">
+        <input type="number" name="target" placeholder="目标">
+        <textarea rows="40" cols="100" name="html"></textarea>
+    </div>
+    <button type="submit" class="btn-primary">发送通知</button>
+</form>
+<h2>反馈: </h2>
+<ul class="qnc-ul">
+    {% for name, content in issues %}
+    <li>{{name}}<br>{{content}}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

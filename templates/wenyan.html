@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block container %}
+<h1>{{word}}</h1>
+{% for head, body in data.items() %}
+<h2>{{head}}</h2>
+<ul class="qnc-ul">
+    {% for i in body %}
+    <li>{{i}}</li>
+    {% endfor %}
+</ul>
+{% endfor %}
+
+{% endblock %}
