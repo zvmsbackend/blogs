@@ -3,11 +3,9 @@ import json
 import sqlite3
 import random
 import hashlib
-from collections import defaultdict
 from functools import wraps
 from operator import itemgetter
 from datetime import date, datetime
-from threading import Lock
 
 from flask import Flask, render_template, request, redirect, abort, session
 from flask_cors import CORS
@@ -20,10 +18,6 @@ app.config['SECRET_KEY'] = 'khfbyu4tgbukys'
 CORS(app, supports_credential=True, resources={"/*", "*"})
 app.test_request_context().push()
 
-lock = Lock()
-visitors = defaultdict(set)
-user_info = {}
-
 with open('words.txt', encoding='utf-8') as f:
     words = sorted(filter(bool, (w.strip().lower() for w in f.read().split('\n'))))
     word_groups = [(c.upper(), [w for w in words if w.startswith(c)]) for c in 'abcdefghijklmnopqrstuvwxyz']
@@ -32,7 +26,6 @@ today = date.today()
 the_saying =  {}
 the_word = ''
 news = {}
-weather = {}
 
 def get_news():
     global news
@@ -56,8 +49,13 @@ def get_the_word():
 def get_the_saying():
     global the_saying
     try:
-        the_saying =  json.loads(requests.get('https://v1.hitokoto.cn/').text)
-    except requests.exceptions.ConnectTimeout: ...
+        res = requests.get('https://v1.hitokoto.cn/')
+        if res.status_code == 200:
+            the_saying =  json.loads(res.text)
+            return
+    except requests.exceptions.ConnectTimeout:
+        ...
+    the_saying = {'hitokoto': 'https://v1.hitokoto.cn坏掉了w'}
 
 def update():
     global today
@@ -164,7 +162,7 @@ def login(cursor: sqlite3.Cursor):
     cursor.execute('SELECT name FROM user WHERE id=? AND pwd=?', (id, md5.hexdigest()))
     res = cursor.fetchone()
     if res is None:
-        return render_template('error.html', '用户名或密码错误')
+        return render_template('error.html', msg='用户名或密码错误')
     session.update({
         'id': id,
         'name': res[0]
@@ -189,9 +187,7 @@ def query():
         return render_template('error.html', msg='查询过长')
     if not word:
         return render_template('error.html', msg='查询过短')
-    with lock:
-        visitors[request.remote_addr].add(word)
-        args = query_word(word, request.args.get('verbose'))
+    args = query_word(word, request.args.get('verbose'))
     return render_template(
         'result.html',
         word=word,
@@ -229,7 +225,6 @@ def more(cursor: sqlite3.Cursor):
 def wenyan(cursor: sqlite3.Cursor):
     word = request.args.get('word')
     if word is None:
-        get_ident()
         return render_template('query.html')
     word = word.strip().lower()
     if len(word) > 10:
@@ -278,10 +273,6 @@ def wenyan(cursor: sqlite3.Cursor):
     return render_template(
         **data
     )
-
-@app.route('/visitors')
-def get_visitors():
-    return '<br />\n'.join(ip + str(user_info.get(ip, '')) + str(hist) for ip, hist in visitors.items())
 
 @app.route('/saying')
 @view
@@ -380,18 +371,18 @@ def words_3500():
     return render_template('3500.html', items=[(f'共搜索到{len(res)}个单词', res)])
 
 @app.route('/admin', methods=['GET', 'POST'])
+@database_required
 @view
-def admin():
+def admin(cursor: sqlite3.Cursor):
     if session.get('id') != '20220905':
         return render_template('error.html', msg='FUCK YOU')
     if request.method == 'GET':
-        connection = sqlite3.connect('qncblog.db')
-        cursor = connection.cursor()
         cursor.execute(
             'SELECT u.name, i.content '
             'FROM issue AS i '
             'JOIN user AS u '
             'ON i.author=u.id '
+            'ORDER BY i.id DESC'
         )
         return render_template('admin.html', issues=cursor.fetchall())
     match request.form.get('task'):
@@ -403,21 +394,25 @@ def admin():
             the_saying = {k: v for k, v in request.form.items() if k != 'task'}
             return redirect('/saying')
         case 'send-notice':
-            connection = sqlite3.connect('qncblog.db')
-            cursor = connection.cursor()
             cursor.execute(
                 'INSERT INTO notice(target, html) VALUES(?, ?)',
                 (request.form.get('target') or None, request.form.get('html'))
             )
-            connection.commit()
-            connection.close()
+            return redirect('/')
+        case 'mod-birthday':
+            birthday = date.fromisoformat(request.form.get('birthday'))
+            for attr in ('year', 'month', 'day'):
+                cursor.execute(
+                    'UPDATE birthday SET {}=? WHERE id=?'.format(attr),
+                    (getattr(birthday, attr), request.form.get('target'))
+                )
             return redirect('/')
         
 @app.route('/notices')
 @database_required
 @view
 def notices(cursor: sqlite3.Cursor):
-    cursor.execute('SELECT html FROM notice WHERE target IS NULL OR target=?', (session.get('id'),))
+    cursor.execute('SELECT html FROM notice WHERE target IS NULL OR target=? ORDER BY id DESC', (session.get('id'),))
     return render_template('notices.html', notices=map(itemgetter(0), cursor.fetchall()))
 
 @app.route('/issues', methods=['GET', 'POST'])
@@ -433,6 +428,28 @@ def issues(cursor: sqlite3.Cursor):
     if content is None or len(content) > 64:
         return render_template('error.html', msg='表单校验错误')
     cursor.execute('INSERT INTO issue(author, content) VALUES(?, ?)', (session.get('id'), content))
+    return redirect('/')
+
+@app.route('/mod-pwd', methods=['GET', 'POST'])
+@database_required
+@view
+def mod_pwd(cursor: sqlite3.Cursor):
+    if request.method == 'GET':
+        return render_template('modpwd.html', target=session.get('id'))
+    target, old, new = map(request.form.get, ('target', 'old', 'new'))
+    if session.get('id') != '20220905' and None in (target, old, new):
+        return render_template('error.html', msg='表单校验错误')
+    if target != session.get('id') and session.get('id') != '20220905':
+        return render_template('error.html', msg='FUCK YOU')
+    if session.get('id') != '20220905':
+        md5 = hashlib.md5()
+        md5.update(old.encode())
+        cursor.execute('SELECT * FROM user WHERE id=? AND pwd=?', (target, md5.hexdigest()))
+        if cursor.fetchone() is None:
+            return render_template('error.html', msg='旧密码错误')
+    md5 = hashlib.md5()
+    md5.update(new.encode())
+    cursor.execute('UPDATE user SET pwd=? WHERE id=?', (md5.hexdigest(), target))
     return redirect('/')
 
 if __name__ == '__main__':

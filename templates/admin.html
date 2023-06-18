@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 
 {% block container %}
-<form method="POST" style="margin-bottom: 50px">
+<style>
+    form {
+        margin-bottom: 50px;
+    }
+</style>
+<form method="POST">
     <div class="form-group">
         <input type="hidden" name="task" value="next-saying">
     </div>
@@ -16,7 +21,22 @@
     </div>
     <button type="submit" class="btn-primary">编辑每日一言</button>
 </form>
-<form method="POST" style="margin-bottom: 50px;">
+<form method="POST" action="/mod-pwd">
+    <div class="form-group">
+        <input type="number" name="target" placeholder="目标学号">
+        <input type="text" name="new" placeholder="新密码">
+    </div>
+    <button type="submit" class="btn-primary">修改密码</button>
+</form>
+<form method="POST">
+    <div class="form-group">
+        <input type="hidden" name="task" value="mod-birthday">
+        <input type="number" name="target" placeholder="目标学号">
+        <input type="text" name="birthday" placeholder="生日">
+    </div>
+    <button type="submit" class="btn-primary">确定</button>
+</form>
+<form method="POST" >
     <div class="form-group">
         <input type="hidden" name="task" value="send-notice">
         <input type="number" name="target" placeholder="目标">

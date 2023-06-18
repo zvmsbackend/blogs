@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block container %}
+<form method="POST">
+    <div class="form-group">
+        <input type="hidden" name="target" value="{{target}}">
+        <input type="text" name="old" placeholder="旧密码">
+        <input type="text" name="new" placeholder="新密码">
+    </div>
+    <button type="submit" class="btn-primary">确认</button>
+</form>
+{% endblock %}

@@ -9,7 +9,6 @@
         left: 0;
         margin: 10px;
         font-size: 20px;
-        text-decoration: none;
     }
     .logout-link {
         position: absolute;
@@ -17,11 +16,16 @@
         left: 0;
         margin: 10px;
         font-size: 20px;
+        text-decoration: none;
     }
 </style>
 {% if name %}
 <span class="login-link">{{name}}</span>
-<a href="/logout" class="logout-link">登出</a>
+<span class="logout-link">
+    <a href="/logout">登出</a>
+    &nbsp
+    <a href="/mod-pwd">修改密码</a>
+</span>
 {% else %}
 <a href="/login" class="login-link">登录</a>
 {% endif %}
