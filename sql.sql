@@ -32,5 +32,6 @@ CREATE TABLE IF NOT EXISTS notice(
 CREATE TABLE IF NOT EXISTS issue(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     author INT,
-    content VARCHAR(64)
+    content VARCHAR(64),
+    time DATETIME
 );

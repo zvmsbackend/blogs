@@ -1,32 +1,7 @@
 {% extends "base.html" %}
 
 {% block container %}
-
- 
-<div class="error-message">
-  <h1>错误信息</h1>
-  <p>{{msg}}</p>
+<div class="card bg-danger">
+    <div class="card-body">{{msg}}</div>
 </div>
-
-<style>
-  .error-message {
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
-    color: #721c24;
-    padding: 10px;
-    margin: 10px;
-    border-radius: 5px;
-  }
-  .error-message h1 {
-    font-size: 24px;
-    margin-top: 0;
-  }
-  .error-message p {
-    font-size: 18px;
-    margin-bottom: 0;
-  }
-</style>
-
-
-
 {% endblock %}

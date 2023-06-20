@@ -4,11 +4,31 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蚯鲇蜍的博客</title>
+    <title>蚯鲇蜍的工具箱</title>
     <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
+    <nav class="navbar navbar-expand bg-dark navbar-dark">
+        <a href="/" class="navbar-brand">蚯鲇蜍的工具箱</a>
+        <ul class="navbar-nav">
+            <li class="nav-item"><a class="nav-link" href="/query">必应词典</a></li>
+            <li class="nav-item"><a class="nav-link" href="/wenyan">汉语词典</a></li>
+            <li class="nav-item"><a class="nav-link" href="/3500">3500词</a></li>
+            <li class="nav-item"><a class="nav-link" href="/hitokoto">每日一言</a></li>
+            <li class="nav-item"><a class="nav-link" href="/word">单词分享</a></li>
+            <li class="nav-item"><a class="nav-link" href="/birthday">生日祝福</a></li>
+            <li class="nav-item"><a class="nav-link" href="/news">新闻联播</a></li>
+            <li class="nav-item"><a class="nav-link" href="/wallpapers">必应壁纸</a></li>
+            <li class="nav-item"><a class="nav-link" href="/weather">MSN天气</a></li>
+            <li class="nav-item"><a class="nav-link" href="/static/calc/index.html">计算器</a></li>
+            <li class="nav-item"><a class="nav-link" href="/static/drawingboard/index.html">画板</a></li>
+        </ul>
+    </nav>
+    <div class="container">
     {% block container %}
     {% endblock %}
+    </div>
 </body>
 </html>

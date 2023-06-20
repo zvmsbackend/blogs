@@ -2,55 +2,66 @@
 
 {% block container %}
 
-<style>
-    .login-link {
-        position: absolute;
-        top: 0;
-        left: 0;
-        margin: 10px;
-        font-size: 20px;
-    }
-    .logout-link {
-        position: absolute;
-        top: 20;
-        left: 0;
-        margin: 10px;
-        font-size: 20px;
-        text-decoration: none;
-    }
-</style>
-{% if name %}
-<span class="login-link">{{name}}</span>
-<span class="logout-link">
-    <a href="/logout">登出</a>
-    &nbsp
-    <a href="/mod-pwd">修改密码</a>
-</span>
-{% else %}
-<a href="/login" class="login-link">登录</a>
-{% endif %}
-<h1 class="index-h1">蚯鲇蜍的工具箱</h1>
-<ul class="index-ul">
-    <li><a href="/query">必应词典</a></li>
-    <li><a href="/word">单词分享</a></li>
-    <li><a href="/3500">3500词</a></li>
-    <li><a href="/wenyan">汉语词典</a></li>
-    <li><a href="/saying">每日一言</a></li>
-</ul>
-<ul class="index-ul">
-    <li><a href="/birthday">生日祝福</a></li>
-    <li><a href="/news">新闻联播</a></li>
-    <li><a href="/wallpapers">必应壁纸</a></li>
-    <li><a href="/static/calc/index.html">计算器</a></li>
-    <li><a href="/static/drawingboard/index.html">几何画板</a></li>
-    <li><a href="/weather">MSN天气</a></li>
-</ul>
-<ul class="index-ul">
-    <li><a href="/notices">查看通知</a></li>
-    <li><a href="/issues">发送反馈</a></li>
+{% if id %}
+<h1>
+    你好, 
     {% if admin %}
-    <li><a href="/admin">后台管理</a></li>
+    <a href="/admin">{{name}}</a>
+    {% else %}
+    {{name}}
     {% endif %}
-</ul>
-
+</h1>
+<div><a href="/logout">登出</a></div>
+<div class="row">
+    <div class="col">
+        <form action="/issue" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="content">反馈:</label>
+                <input class="form-control" type="text" name="content" id="content" placeholder="输入反馈">
+            </div>
+            <button class="btn btn-primary" type="submit">提交反馈</button>
+        </form>
+        <p>你今天还能输入{{5 - times}}条反馈</p>
+        <h2>已发送的反馈</h2>
+        <ul class="list-group">
+            {% for issue in issues %}
+            <li class="list-group-item">{{issue}}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="col">
+        <form action="/mod-pwd" method="POST">
+            <input type="hidden" name="target" value="{{id}}">
+            <div class="form-group">
+                <label class="form-label" for="old">旧密码:</label>
+                <input class="form-control" type="password" name="old" id="old" placeholder="输入旧密码">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="new">新密码:</label>
+                <input class="form-control" type="password" name="new" id="new" placeholder="输入新密码">
+            </div>
+            <button class="btn btn-primary" type="submit">修改密码</button>
+        </form>
+    </div>
+</div>
+<h2>通知:</h2>
+{% for notice in notices %}
+<div class="card">
+    <div class="card-body">{{notice|safe}}</div>
+</div>
+{% endfor %}
+{% else %}
+<form method="POST">
+    <div class="form-group">
+        <label class="form-label" for="id">ID:</label>
+        <input class="form-control" type="number" name="id" id="id" placeholder="输入ID">
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="pwd">密码:</label>
+        <input class="form-control" type="password" name="pwd" id="pwd" placeholder="输入密码">
+    </div>
+    <button class="btn btn-primary">登录</button>
+</form>
+{% endif %}
+    
 {% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block container %}
+<blockquote class="blockquote">
+    <p style="font-size: 24px">{{hitokoto}}</p>
+    <footer class="blockquote-footer">{{from_who or ''}} {{from}}</footer>
+</blockquote>
+{% endblock %}

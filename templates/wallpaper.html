@@ -1,10 +1,30 @@
 {% extends "base.html" %}
 
 {% block container %}
-{% for img in imgs %}
-<h2>{{img.title}}</h2>
-<img class="qnc-img" src="https://bing.com{{img.url}}">
-<p style="text-align: center;">{{img.copyright}}</p>
-{% endfor %}
+
+<div id="wallpapers" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        {% for i, _ in enumerate(imgs) %}
+        <button type="button" data-bs-target="#wallpapers" data-bs-slide-to="{{i}}" class="{{'active' if i == 0 else ''}}"/>
+        {% endfor %}
+    </div>
+    <div class="carousel-inner">
+        {% for i, img in enumerate(imgs) %}
+        <div class="carousel-item{{' active' if i == 0 else ''}}">
+            <img src="https://bing.com{{img.url}}" class="d-block" style="width: 100%">
+            <div class="carousel-caption">
+                <h3>{{img.title}}</h3>
+                <p>{{img.copyright}}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#wallpapers" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" />
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#wallpapers" data-bs-slide="next">
+        <span class="carousel-control-next-icon" />
+    </button>
+</div>
 
 {% endblock %}

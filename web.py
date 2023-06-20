@@ -1,3 +1,4 @@
+import re
 import sys
 import json
 import sqlite3
@@ -23,7 +24,7 @@ with open('words.txt', encoding='utf-8') as f:
     word_groups = [(c.upper(), [w for w in words if w.startswith(c)]) for c in 'abcdefghijklmnopqrstuvwxyz']
 
 today = date.today()
-the_saying =  {}
+hitokoto =  {}
 the_word = ''
 news = {}
 
@@ -46,16 +47,19 @@ def get_the_word():
     global the_word
     the_word = random.choice(words)
 
-def get_the_saying():
-    global the_saying
+def get_hitokoto():
+    global hitokoto
+    print('enter')
     try:
-        res = requests.get('https://v1.hitokoto.cn/')
+        res = requests.get('https://v1.hitokoto.cn/', timeout=1)
         if res.status_code == 200:
-            the_saying =  json.loads(res.text)
+            hitokoto =  json.loads(res.text)
+            print('exit')
             return
     except requests.exceptions.ConnectTimeout:
         ...
-    the_saying = {'hitokoto': 'https://v1.hitokoto.cn坏掉了w'}
+    hitokoto = {'hitokoto': 'https://v1.hitokoto.cn坏掉了w'}
+    print('exit')
 
 def update():
     global today
@@ -63,7 +67,7 @@ def update():
     get_news()
     get_the_word()
     get_wallpapers()
-    get_the_saying()
+    get_hitokoto()
 
 def comp(tag, name, *cls):
     for i in cls:
@@ -75,8 +79,8 @@ def comp(tag, name, *cls):
             
 def get_weather():
     res = requests.get('https://www.msn.cn/zh-cn/weather/forecast/')
-    soup = bs4.BeautifulSoup(res.text, 'lxml')
-    return json.loads(soup.find('script', {'type': 'application/json'}).string)
+    match = re.search(r'\<script id="redux-data" type="application/json"\>([\s\S]+?)\</script\>', res.text)
+    return json.loads(match.group(1))
 
 def query_word(word: str, verbose: bool):
     if verbose:
@@ -103,7 +107,8 @@ def query_word(word: str, verbose: bool):
                 map(Tag.get_text, main.find_all('div', {'class': 'dis'})),
                 main.find_all('div', {'class': 'li_exs'})
             ):
-                ret['sens'].append((head, ['{} {}'.format(*comp(stc, 'div', 'bil_ex', 'val_ex')) for stc in body.find_all('div', {'class': 'li_ex'})]))
+                ret['sens'].append((head, ['{} {}'.format(*comp(stc, 'div', 'bil_ex', 'val_ex'))
+                                           for stc in body.find_all('div', {'class': 'li_ex'})]))
         cursor.execute('INSERT INTO dict VALUES(?, ?)', (word, json.dumps(ret, ensure_ascii=False)))
         connection.commit()
         connection.close()
@@ -139,27 +144,33 @@ def view(fn):
         return fn(*args, **kwargs)
     return wrapper
 
-@app.route('/')
-@view
-def index():
-    return render_template(
-        'index.html',
-        name=session.get('name'),
-        admin=session.get('id') == '20220905'
-    )
-
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 @database_required
 @view
-def login(cursor: sqlite3.Cursor):
+def index(cursor: sqlite3.Cursor):
     if request.method == 'GET':
-        return render_template('login.html')
-    id, pwd = map(request.form.get, ('username', 'password'))
+        args = dict.fromkeys(('times', 'issues', 'notices'))
+        id = session.get('id')
+        if id is not None:
+            cursor.execute('SELECT COUNT(*) FROM issue WHERE id = ? AND time > ?', (id, today))
+            args['times'] = cursor.fetchone()[0]
+            cursor.execute('SELECT content FROM issue WHERE id = ? ORDER BY ID DESC', (id,))
+            args['issues'] = map(itemgetter(0), cursor.fetchall())
+            cursor.execute('SELECT html FROM notice WHERE target IS NULL OR target = ? ORDER BY ID DESC', (id,))
+            args['notices'] = map(itemgetter(0), cursor.fetchall())
+        return render_template(
+            'index.html',
+            id=id,
+            name=session.get('name'),
+            admin=session.get('id') == '20220905',
+            **args
+        )
+    id, pwd = map(request.form.get, ('id', 'pwd'))
     if None in (id, pwd) or not id.isnumeric():
         return render_template('error.html', msg='表单校验错误')
     md5 = hashlib.md5()
     md5.update(pwd.encode())
-    cursor.execute('SELECT name FROM user WHERE id=? AND pwd=?', (id, md5.hexdigest()))
+    cursor.execute('SELECT name FROM user WHERE id = ? AND pwd = ?', (id, md5.hexdigest()))
     res = cursor.fetchone()
     if res is None:
         return render_template('error.html', msg='用户名或密码错误')
@@ -167,6 +178,51 @@ def login(cursor: sqlite3.Cursor):
         'id': id,
         'name': res[0]
     })
+    return redirect('/')
+
+@app.route('/issue', methods=['POST'])
+@database_required
+@view
+def issues(cursor: sqlite3.Cursor):
+    if 'id' not in session:
+        return render_template('error.html', msg='未登录')
+    cursor.execute('SELECT COUNT(*) FROM issue WHERE author=? AND time>?', (
+        session.get('id'),
+        today
+    ))
+    times = cursor.fetchone()[0]
+    if times > 5:
+        return render_template('error.html', msg='反馈已达上限')
+    content = request.form.get('content')
+    if not content or content.isspace() or len(content) > 64:
+        return render_template('error.html', msg='表单校验错误')
+    cursor.execute('INSERT INTO issue(author, content, time) VALUES(?, ?, ?)', (
+        session.get('id'), 
+        content,
+        datetime.now()
+    ))
+    return redirect('/')
+
+@app.route('/mod-pwd', methods=['GET', 'POST'])
+@database_required
+@view
+def mod_pwd(cursor: sqlite3.Cursor):
+    if request.method == 'GET':
+        return render_template('modpwd.html', target=session.get('id'))
+    target, old, new = map(request.form.get, ('target', 'old', 'new'))
+    if session.get('id') != '20220905' and None in (target, old, new):
+        return render_template('error.html', msg='表单校验错误')
+    if target != session.get('id') and session.get('id') != '20220905':
+        return render_template('error.html', msg='FUCK YOU')
+    if session.get('id') != '20220905':
+        md5 = hashlib.md5()
+        md5.update(old.encode())
+        cursor.execute('SELECT * FROM user WHERE id=? AND pwd=?', (target, md5.hexdigest()))
+        if cursor.fetchone() is None:
+            return render_template('error.html', msg='旧密码错误')
+    md5 = hashlib.md5()
+    md5.update(new.encode())
+    cursor.execute('UPDATE user SET pwd=? WHERE id=?', (md5.hexdigest(), target))
     return redirect('/')
 
 @app.route('/logout')
@@ -252,12 +308,17 @@ def wenyan(cursor: sqlite3.Cursor):
         }
     elif len(word) == 1:
         swjz = soup.find('div', {'class': 'swjz'})
+        def maybe(cls: str, tagname: str):
+            tag = soup.find('div', {'class': cls})
+            if tag is None:
+                return []
+            return list(map(Tag.get_text, tag.find_all(tagname)))
         data = {
             'template_name_or_list': 'wenyan.html',
             'data': {
-                '基本解释': list(map(Tag.get_text, soup.find('div', {'class': 'jbjs'}).find_all('li'))),
-                '详细解释': list(map(Tag.get_text, soup.find('div', {'class': 'xxjs'}).find_all('p'))),
-                '康熙字典': list(map(Tag.get_text, soup.find('div', {'class': 'kxzd'}).find_all('p'))),
+                '基本解释': maybe('jbjs', 'li'),
+                '详细解释': maybe('xxjs', 'p'),
+                '康熙字典': maybe('kxzd', 'p'),
                 '说文解字': [swjz.find('p').get_text() if swjz is not None else '']
             }
         }
@@ -274,10 +335,10 @@ def wenyan(cursor: sqlite3.Cursor):
         **data
     )
 
-@app.route('/saying')
+@app.route('/hitokoto')
 @view
 def everyday_saying():
-    return render_template('saying.html', **the_saying)
+    return render_template('hitokoto.html', **hitokoto)
 
 @app.route('/word')
 @view
@@ -301,7 +362,7 @@ def birthday(cursor: sqlite3.Cursor):
             'WHERE id IN '
             '(SELECT id '
             'FROM birthday '
-            'WHERE month=? AND day=?)', 
+            'WHERE month = ? AND day = ?)', 
             (today.month, today.day)
         )
         args['today'] = map(itemgetter(0), cursor.fetchall())
@@ -309,8 +370,8 @@ def birthday(cursor: sqlite3.Cursor):
             'SELECT u.name, b.day '
             'FROM birthday AS b '
             'JOIN user AS u '
-            'ON b.id=u.id '
-            'WHERE b.month=?',
+            'ON b.id = u.id '
+            'WHERE b.month = ?',
             (today.month,)
         )
         args['thismonth'] = cursor.fetchall()
@@ -320,8 +381,10 @@ def birthday(cursor: sqlite3.Cursor):
         args['login'] = 'id' in session
         args['profile'] = None
         if args['login']:
-            cursor.execute('SELECT year, month, day FROM birthday WHERE id=?', (session.get('id'),))
-            args['profile'] = (session.get('name'),) + cursor.fetchone()
+            cursor.execute('SELECT year, month, day FROM birthday WHERE id = ?', (session.get('id'),))
+            res = cursor.fetchone()
+            if res is not None:
+                args['profile'] = (session.get('name'),) + res
         return render_template('birthday.html', **args)
     if 'id' not in session:
         return render_template('error.html', msg='未登录')
@@ -343,7 +406,11 @@ def birthday(cursor: sqlite3.Cursor):
 @app.route('/wallpapers')
 @view
 def bing_wallpapers():
-    return render_template('wallpaper.html', imgs=wallpapers)
+    return render_template(
+        'wallpaper.html', 
+        imgs=wallpapers,
+        enumerate=enumerate
+    )
 
 @app.route('/weather')
 @view
@@ -378,7 +445,7 @@ def admin(cursor: sqlite3.Cursor):
         return render_template('error.html', msg='FUCK YOU')
     if request.method == 'GET':
         cursor.execute(
-            'SELECT u.name, i.content '
+            'SELECT u.name, i.author, i.content '
             'FROM issue AS i '
             'JOIN user AS u '
             'ON i.author=u.id '
@@ -387,11 +454,11 @@ def admin(cursor: sqlite3.Cursor):
         return render_template('admin.html', issues=cursor.fetchall())
     match request.form.get('task'):
         case 'next-saying': 
-            get_the_saying()
+            get_hitokoto()
             return redirect('/saying')
         case 'edit-saying':
-            global the_saying
-            the_saying = {k: v for k, v in request.form.items() if k != 'task'}
+            global hitokoto
+            hitokoto = {k: v for k, v in request.form.items() if k != 'task'}
             return redirect('/saying')
         case 'send-notice':
             cursor.execute(
@@ -403,54 +470,10 @@ def admin(cursor: sqlite3.Cursor):
             birthday = date.fromisoformat(request.form.get('birthday'))
             for attr in ('year', 'month', 'day'):
                 cursor.execute(
-                    'UPDATE birthday SET {}=? WHERE id=?'.format(attr),
+                    'UPDATE birthday SET {} = ? WHERE id = ?'.format(attr),
                     (getattr(birthday, attr), request.form.get('target'))
                 )
             return redirect('/')
-        
-@app.route('/notices')
-@database_required
-@view
-def notices(cursor: sqlite3.Cursor):
-    cursor.execute('SELECT html FROM notice WHERE target IS NULL OR target=? ORDER BY id DESC', (session.get('id'),))
-    return render_template('notices.html', notices=map(itemgetter(0), cursor.fetchall()))
-
-@app.route('/issues', methods=['GET', 'POST'])
-@database_required
-@view
-def issues(cursor: sqlite3.Cursor):
-    if 'id' not in session:
-        return render_template('error.html', msg='未登录')
-    if request.method == 'GET':
-        cursor.execute('SELECT content FROM issue WHERE author=?', (session.get('id'),))
-        return render_template('issues.html', issues=map(itemgetter(0), cursor.fetchall()))
-    content = request.form.get('content')
-    if content is None or len(content) > 64:
-        return render_template('error.html', msg='表单校验错误')
-    cursor.execute('INSERT INTO issue(author, content) VALUES(?, ?)', (session.get('id'), content))
-    return redirect('/')
-
-@app.route('/mod-pwd', methods=['GET', 'POST'])
-@database_required
-@view
-def mod_pwd(cursor: sqlite3.Cursor):
-    if request.method == 'GET':
-        return render_template('modpwd.html', target=session.get('id'))
-    target, old, new = map(request.form.get, ('target', 'old', 'new'))
-    if session.get('id') != '20220905' and None in (target, old, new):
-        return render_template('error.html', msg='表单校验错误')
-    if target != session.get('id') and session.get('id') != '20220905':
-        return render_template('error.html', msg='FUCK YOU')
-    if session.get('id') != '20220905':
-        md5 = hashlib.md5()
-        md5.update(old.encode())
-        cursor.execute('SELECT * FROM user WHERE id=? AND pwd=?', (target, md5.hexdigest()))
-        if cursor.fetchone() is None:
-            return render_template('error.html', msg='旧密码错误')
-    md5 = hashlib.md5()
-    md5.update(new.encode())
-    cursor.execute('UPDATE user SET pwd=? WHERE id=?', (md5.hexdigest(), target))
-    return redirect('/')
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:

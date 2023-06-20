@@ -46,8 +46,8 @@
 </form>
 <h2>反馈: </h2>
 <ul class="qnc-ul">
-    {% for name, content in issues %}
-    <li>{{name}}<br>{{content}}</li>
+    {% for name, id, content in issues %}
+    <li>{{name}} {{id}}<br>{{content}}</li>
     {% endfor %}
 </ul>
 {% endblock %}
