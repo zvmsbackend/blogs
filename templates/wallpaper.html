@@ -4,12 +4,12 @@
 
 <div id="wallpapers" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-indicators">
-        {% for i, _ in enumerate(imgs) %}
+        {% for i, _ in imgs %}
         <button type="button" data-bs-target="#wallpapers" data-bs-slide-to="{{i}}" class="{{'active' if i == 0 else ''}}"/>
         {% endfor %}
     </div>
     <div class="carousel-inner">
-        {% for i, img in enumerate(imgs) %}
+        {% for i, img in imgs %}
         <div class="carousel-item{{' active' if i == 0 else ''}}">
             <img src="https://bing.com{{img.url}}" class="d-block" style="width: 100%">
             <div class="carousel-caption">

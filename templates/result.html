@@ -1,22 +1,30 @@
 {% extends "base.html" %}
 
 {% block container %}
-<h3>{{word}}</h2>
+<h3>{{word}}</h3>
 <h4>发音</h4>
 <p>{{pron}}</p>
 <h4>释义</h4>
-<ul class="qnc-ul">
+<ul class="list-group">
   {% for i in explainations %}
-  <li>{{i}}</li>
+  <li class="list-group-item">{{i}}</li>
   {% endfor %}
 </ul>
-{% for head, body in sens %}
-<ul>
-  <li><strong class="qnc-strong">{{head}}</strong></li>
-  {% for i in body %}
-  <li>{{i}}</li>
-  {% endfor %}
-</ul>
-{% endfor %}
-<a class="qnc-a" href="/more?word={{word}}&offset=1">更多例句</a>
+<table class="table">
+    <tbody>
+        {% for head, body in sens %}
+        <tr>
+            <th><strong>{{head}}</strong></th>
+            <th>
+                <ul class="list-group">
+                    {% for i in body %}
+                    <li class="list-group-item">{{i}}</li>
+                    {% endfor %}
+                </ul>
+            </th>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="/more?word={{word}}&offset=1">更多例句</a>
 {% endblock %}

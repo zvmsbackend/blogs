@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block container %}
+{% if session %}
+    <table class="table">
+        <tbody>
+            {% for human, content in session %}
+            <tr>
+                {% if human %}
+                <th class="text-primary">
+                    {{name}}
+                </th>
+                {% else %}
+                <th class="text-danger">
+                    AIML
+                </th>
+                {% endif %}
+                <th>
+                    {{content}}
+                </th>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+<p>还没有对话过</p>
+{% endif %}
+<p>你今天还有{{20 - count}}次机会</p>
+<form method="POST">
+    <label class="form-label">注意: AIML只认识英文</label>
+    <div class="form-group">
+        <label class="form-label" for="text">消息:</label>
+        <input class="form-control" id="text" name="text" placeholder="输入消息" maxlength="64">
+    </div>
+    <button class="btn btn-primary" type="submit" id="submit">发送</button>
+</form>
+<script>
+    const submit = document.getElementById('submit');
+    submit.addEventListener('click', (e) => {
+        submit.style = 'display: none;';
+    });
+</script>
+{% endblock %}

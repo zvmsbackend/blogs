@@ -3,51 +3,113 @@
 {% block container %}
 <style>
     form {
-        margin-bottom: 50px;
+        margin-bottom: 30px;
     }
 </style>
-<form method="POST">
-    <div class="form-group">
-        <input type="hidden" name="task" value="next-saying">
+<div data-bs-spy="scroll" data-bs-target="#admin-nav" data-bs-offset="0">
+    <nav class="navbar navbar-expand-sm bg-primary navbar-dark fixed-top" style="margin-top: 50px;">
+        <div class="container-fluid">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/edit-notices">编辑通知</a></li>
+                <li class="nav-item"><a class="nav-link" href="#muyu">木鱼设置</a></li>
+                <li class="nav-item"><a class="nav-link" href="#user">用户管理</a></li>
+                <li class="nav-item"><a class="nav-link" href="#hitokoto">一言管理</a></li>
+                <li class="nav-item"><a class="nav-link" href="#birthday">生日管理</a></li>
+                <li class="nav-item"><a class="nav-link" href="#notice">发送通知</a></li>
+                <li class="nav-item"><a class="nav-link" href="#issue">反馈</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div style="margin-top: 120px;">
+        <div id="muyu">
+            <form method="POST">
+                <input type="hidden" name="task" value="set-count">
+                <input class="form-control" type="number" name="id" placeholder="输入学号">
+                <input class="form-control" type="number" name="count" placeholder="输入计数">
+                <button class="btn btn-primary" type="submit">修改木鱼数量</button>
+            </form>
+            <form method="POST">
+                <input type="hidden" name="task" value="muyu-speed">
+                <input class="form-control" type="number" name="speed" placeholder="木鱼速度">
+                <button class="btn btn-primary" type="submit">修改木鱼速度</button>
+            </form>
+            <form method="POST">
+                <input type="hidden" name="task" value="set-muyu">
+                <button class="btn btn-primary" type="submit">打开/关闭木鱼</button>
+            </form>
+            <form method="POST">
+                <input type="hidden" name="task" value="set-sound">
+                <button class="btn btn-primary" type="submit">打开/关闭声音</button>
+            </form>
+        </div>
+        <div id="user">
+            <form method="POST">
+                <input type="hidden" name="task" value="query-id">
+                <input class="form-control" type="number" name="id" placeholder="输入学号">
+                <button class="btn btn-primary" type="submit">查询学号</button>
+            </form>
+            <form method="POST">
+                <input type="hidden" name="task" value="query-name">
+                <input class="form-control" type="text" name="name" placeholder="输入姓名">
+                <button class="btn btn-primary" type="submit">查询姓名</button>
+            </form>
+            <form action="/mod-pwd" method="POST">
+                <input type="hidden" name="task" value="mod-pwd">
+                <input class="form-control" type="number" name="target" placeholder="目标学号">
+                <input class="form-control" type="password" name="new" placeholder="新密码">
+                <button class="btn btn-primary" type="submit">修改密码</button>
+            </form>
+            <form method="POST">
+                <input type="hidden" name="task" value="login">
+                <input class="form-control" type="number" placeholder="输入学号">
+                <button class="btn btn-primary" type="submit">登录帐号</button>
+            </form>
+        </div>
+        <div id="hitokoto">
+            <form method="POST">
+                <input type="hidden" name="task" value="next-saying">
+                <button type="submit" class="btn btn-primary">更换每日一言</button>
+            </form>
+            <form method="POST">
+                <input type="hidden" name="task" value="edit-saying">
+                <input class="form-control" type="text" name="hitokoto" placeholder="hitokoto">
+                <input class="form-control" type="text" name="from_who" placeholder="from_who">
+                <input class="form-control" type="text" name="from" placeholder="from">
+                <button type="submit" class="btn btn-primary">编辑每日一言</button>
+            </form>
+        </div>
+        <div id="birthday">
+            <form method="POST">
+                <input type="hidden" name="task" value="mod-birthday">
+                <input class="form-control" type="number" name="target" placeholder="目标学号">
+                <input class="form-control" type="text" name="birthday" placeholder="生日">
+                <button type="submit" class="btn btn-primary">修改生日</button>
+            </form>
+            <form method="POST">
+                <input type="hidden" name="task" value="del-birthday">
+                <input class="form-control" type="number" name="target" placeholder="目标学号">
+                <button type="submit" class="btn btn-danger">删除生日</button>
+            </form>
+        </div>
+        <div id="notice">
+            <form method="POST">
+                <input type="hidden" name="task" value="send-notice">
+                <input class="form-control" type="number" name="target" placeholder="目标">
+                <pre><textarea class="form-control" rows="10" name="html"></textarea></pre>
+                <button type="submit" class="btn btn-primary">发送通知</button>
+            </form>
+        </div>
+        <div id="issue">
+            <form method="POST">
+                <input type="hidden" name="task" value="clear-issues">
+                <button type="submit" class="btn btn-danger">清除反馈</button>
+            </form>
+            <ul class="list-group">
+                {% for name, id, content in issues %}
+                <li class="list-group-item">{{name}} {{id}}<br>{{content}}</li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
-    <button type="submit" class="btn-primary">更换每日一言</button>
-</form>
-<form method="POST">
-    <div class="form-group">
-        <input type="hidden" name="task" value="edit-saying">
-        <input type="text" name="hitokoto" placeholder="hitokoto">
-        <input type="text" name="from_who" placeholder="from_who">
-        <input type="text" name="from" placeholder="from">
-    </div>
-    <button type="submit" class="btn-primary">编辑每日一言</button>
-</form>
-<form method="POST" action="/mod-pwd">
-    <div class="form-group">
-        <input type="number" name="target" placeholder="目标学号">
-        <input type="text" name="new" placeholder="新密码">
-    </div>
-    <button type="submit" class="btn-primary">修改密码</button>
-</form>
-<form method="POST">
-    <div class="form-group">
-        <input type="hidden" name="task" value="mod-birthday">
-        <input type="number" name="target" placeholder="目标学号">
-        <input type="text" name="birthday" placeholder="生日">
-    </div>
-    <button type="submit" class="btn-primary">确定</button>
-</form>
-<form method="POST" >
-    <div class="form-group">
-        <input type="hidden" name="task" value="send-notice">
-        <input type="number" name="target" placeholder="目标">
-        <textarea rows="40" cols="100" name="html"></textarea>
-    </div>
-    <button type="submit" class="btn-primary">发送通知</button>
-</form>
-<h2>反馈: </h2>
-<ul class="qnc-ul">
-    {% for name, id, content in issues %}
-    <li>{{name}} {{id}}<br>{{content}}</li>
-    {% endfor %}
-</ul>
+</div> 
 {% endblock %}

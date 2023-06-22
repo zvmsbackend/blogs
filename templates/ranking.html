@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block container %}
+<div style="text-align: center;">
+<p>你们为Cyberspaces作出了不可磨灭的贡献</p>
+<p><span style="font-size: 64px;">Saint HE</span>将会宽恕你们</p>
+{% if login %}
+    <form method="POST">
+        <input type="hidden" name="anonymous" value="{{'0' if anonymous else '1'}}">
+        <button class="btn btn-primary">
+            {% if anonymous %}
+            我不想匿名了
+            {% else %}
+            可是我想匿名
+            {% endif %}
+        </button>
+    </form>
+{% endif %}
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>排名</th>
+            <th>用户名</th>
+            <th>ID</th>
+            <th>数量</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (name, id, count) in data %}
+        <tr>
+            <th>
+                {% if i > 2 %}
+                <i>{{i}}</i>
+                {% else %}
+                <span class="badge bg-{{('warning', 'secondary', 'dark')[i]}}">{{i}}</span>
+                {% endif %}
+            </th>
+            <th>{{name}}</th>
+            <th>{{id}}</th>
+            <th>{{count}}</th>
+        </tr>
+        {% endfor %}
+{% endblock %}

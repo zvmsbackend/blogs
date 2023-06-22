@@ -17,9 +17,9 @@
         <form action="/issue" method="POST">
             <div class="form-group">
                 <label class="form-label" for="content">反馈:</label>
-                <input class="form-control" type="text" name="content" id="content" placeholder="输入反馈">
+                <input class="form-control" type="text" name="content" id="content" placeholder="输入反馈" maxlength="64">
             </div>
-            <button class="btn btn-primary" type="submit">提交反馈</button>
+            <button class="btn btn-primary" type="submit" id="submit">提交反馈</button>
         </form>
         <p>你今天还能输入{{5 - times}}条反馈</p>
         <h2>已发送的反馈</h2>
@@ -63,5 +63,10 @@
     <button class="btn btn-primary">登录</button>
 </form>
 {% endif %}
-    
+<script>
+    const submit = document.getElementById('submit');
+    submit.addEventListener('click', (e) => {
+        submit.style = 'display: none;';
+    });
+</script>
 {% endblock %}

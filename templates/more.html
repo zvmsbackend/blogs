@@ -1,19 +1,23 @@
 {% extends "base.html" %}
 
 {% block container %}
-<ul class="qnc-ul">
+<ul class="list-group">
     {% for i in more %}
-    <li>{{i}}</li>
+    <li class="list-group-item">{{i}}</li>
     {% endfor %}
 </ul>
-<ul class="qnc-ul" style="margin-top: 20px">
+<ul class="pagination">
     {% for i in pages %}
-    <li style="display: inline"><a class="qnc-a" href="/more?word={{word}}&offset={{i}}">{{i}}</a></li>
+    <li class="page-item"><a class="page-link" href="/more?word={{word}}&offset={{i}}">{{i}}</a></li>
     {% endfor %}
 </ul>
-<form class="search-form">
+<form>
     <input type="hidden" name="word" value="{{word}}">
-    <input type="text" name="offset" placeholder="跳转到页数">
-    <button>确定</button>
+    <div class="row">
+        <div class="col">
+            <input class="form-control" type="text" name="offset" placeholder="跳转到页数">
+            <button class="btn btn-primary" type="submit">确定</button>
+        </div>
+    </div>
 </form>
 {% endblock %}

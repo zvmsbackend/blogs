@@ -35,3 +35,15 @@ CREATE TABLE IF NOT EXISTS issue(
     content VARCHAR(64),
     time DATETIME
 );
+CREATE TABLE IF NOT EXISTS muyu(
+    id INT PRIMARY KEY,
+    count INT,
+    anonymous SMALLINT
+);
+CREATE TABLE IF NOT EXISTS ai(
+    id INT PRIMARY KEY,
+    user INT,
+    human SMALLINT,
+    content TEXT,
+    time DATETIME
+);

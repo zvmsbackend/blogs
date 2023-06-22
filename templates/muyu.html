@@ -1,0 +1,111 @@
+{% extends "base.html" %} 
+<!-- <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css"> -->
+{% block container %}
+<p>赛博反馈由人工智能自动处理.</p>
+<p>你不觉得这很酷吗? 科技并带着趣味. 作为一个理工男, 很符合我对未来的想象.</p>
+<div class="row">
+    <div class="col-10">
+        <div class="form-group">
+            <label class="form-label" for="issue">反馈:</label>
+            <pre><textarea class="form-control" id="issue">72 | 101 | 108 | 108 | 111 | 44 | 32 | 76 | 105 | 116 | 97 | 110 | 103 | 46</textarea></pre>
+        </div>
+        <button class="btn btn-primary btn-lg" id="btn" style="font-size: 20px">提交反馈</button>
+    </div>
+    <div class="col-2">
+        <p>你现在提交了<span id="counter">0</span>条反馈.</p>
+        <p>你总共提交了{{count}}条反馈.</p>
+        <form method="POST">
+            <input type="hidden" id="input" name="count" value="0">
+            <button class="btn btn-primary" type="submit" id="submit">记录</button>
+        </form>
+        <br>
+        <div class="form-check">
+            <label class="form-check-label">声音</label>
+            <input type="checkbox" class="form-check-input" id="sound" {{'checked' if sound else ''}}>
+        </div>
+        <div class="form-check">
+            <label class="form-check-label">自动反馈</label>
+            <input type="checkbox" class="form-check-input" id="auto">
+        </div>
+        <p><small><i class="text-secondary">我做了一个能自己<del>打字的键盘</del>反馈的人工智能</i></small></p>
+        <a href="/muyu-ranking">反馈榜</a>
+    </div>
+</div>
+<script>
+    const autospeed = {{autospeed}};
+</script>
+<script>
+    const audio = new Audio('/static/misc/muyu.mp3');
+    const btn = document.getElementById('btn');
+    const counter = document.getElementById('counter');
+    const input = document.getElementById('input');
+    const submit = document.getElementById('submit');
+    const sound = document.getElementById('sound');
+    const auto = document.getElementById('auto');
+    let soundon = sound.checked;
+    let count = 0;
+    let foo;
+    let bar;
+    let baz;
+    function autoclick() {
+        btn.click();
+        bar = setTimeout(autoclick, autospeed);
+    }
+    function heartbeat() {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', '/muyu-enabled', true);
+        xhr.onreadystatechange = function() {
+            if (!xhr.responseBody) {
+                window.close();
+            }
+        });
+        xhr.send();
+        baz = setTimeout(hearbeat, 5000);
+    }
+    baz = setTimeout(heartbeat, 5000);
+    auto.addEventListener('click', (e) => {
+        if (!auto.checked) {
+            clearTimeout(bar);
+        } else {
+            bar = setTimeout(autoclick, autospeed);
+        }
+    });
+    sound.addEventListener('click', (e) => {
+        soundon = sound.checked;
+    });
+    btn.addEventListener('click', (e) => {
+        if (soundon) {
+            audio.currentTime = 0;
+            audio.play();
+        }
+        count++;
+        if (count > 3000) {
+            btn.innerText = 'Hello, Litang!';
+        } else if (count > 2000) {
+            btn.className = 'btn btn-warning text-light';
+        } else if (count > 1000) {
+            btn.className = 'btn btn-danger text-warning';
+        } else if (count > 500) {
+            btn.className = 'btn btn-success';
+        } else if (count > 200) {
+            btn.className = 'btn btn-light text-dark';
+        }
+        counter.innerText = count;
+        input.setAttribute('value', count);
+        let size = 20;
+        if (count > 1000) {
+            size = 120;
+        } else {
+            size = 20 + Math.floor(count / 10);
+        }
+        btn.style = 'font-size: ' + Math.floor(size * 1.2).toString() + 'px';
+        if (foo) {
+            clearTimeout(foo);
+        }
+        foo = setTimeout(() => btn.style = 'font-size: ' + size.toString() + 'px', 80);
+    });
+    submit.addEventListener('click', (e) => {
+        submit.style = 'display: none;';
+    })
+</script>
+{% endblock %}

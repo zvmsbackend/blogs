@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block container %}
+
+{% for name, id, target, html in data %}
+<form method="POST">
+    <input type="hidden" name="id"value="{{id}}">
+    <label class="form-label" for="t-{{id}}">{{name}} {{target}}</label>
+    <pre><textarea class="form-control" name="html" rows="10">{{html}}</textarea></pre>
+    <button class="btn btn-primary" type="submit">修改</button>
+</form>
+<form method="POST">
+    <input type="hidden" name="delete" value="1">
+    <input type="hidden" name="id" value="{{id}}">
+    <button class="btn btn-danger" type="submit">删除</button>
+</form>
+<hr>
+{% endfor %}
+
+{% endblock %}

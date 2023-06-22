@@ -17,12 +17,12 @@ p {
   line-height: 1.5;
   margin-bottom: 1.5rem;
 }
-ul {
+ul.foo {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-li {
+ul.foo li {
   margin-bottom: 1rem;
 }
 li strong {
@@ -43,7 +43,7 @@ li:hover ul {
 
 <h1>{{location}}的天气</h1>
 <h2>当前天气</h2>
-<ul class="current-weather">
+<ul class="current-weather foo">
     <li>气温: {{currentCondition.currentTemperature}}</li>
     <li>体感温度: {{currentCondition.feels}}</li>
     <li>湿度: {{currentCondition.humidity}}</li>
@@ -59,7 +59,7 @@ li:hover ul {
 <h2>天气预报</h2>
 {% for i in forecast %}
 <h3>{{i.dayTextLocaleString}}</h3>
-<ul class="weather-forecast">
+<ul class="weather-forecast foo">
     <li>最高温度: {{i.highTemperature}}</li>
     <li>最低温度: {{i.lowTemperature}}</li>
     <li>最高湿度: {{i.humidityHi}}</li>
@@ -74,7 +74,7 @@ li:hover ul {
     {% endfor %}
     {% if i.hourly %}
     <li>小时预报
-        <ul class="hourly-forecast">
+        <ul class="hourly-forecast foo">
             {% for j in i.hourly %}
             <li><strong>{{datetime.fromisoformat(j.timeStr).strftime('%H')}}时</strong></li>
             <li>温度: {{j.temperature}}</li>
@@ -92,7 +92,9 @@ li:hover ul {
     {% endif %}
 </ul>
 {% endfor %}
+{% if nowcasting %}
 <h4>{{nowcasting.summary}}</h4>
+{% endif %}
 {% if alertsInfo %}
 <h2>警告</h2>
 <h5>{{alertsInfo.title}}</h5>

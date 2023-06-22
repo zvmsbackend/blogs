@@ -1,24 +1,38 @@
 {% extends "base.html" %}
 
 {% block container %}
-
-<div class="search-form">
-    <form>
-        <input type="text" name="q" placeholder="输入关键词">
-        <button type="submit">搜索</button>
-    </form>
-</div>
-<div class="words-3500">
-    {% for title, content in items %}
-    <div>
-        <h2>{{title}}</h2>
-        <ul>
-            {% for item in content %}
-            <li><a href="/query?word={{item}}">{{item}}</a></li>
-            {% endfor %}
-        </ul>
+<form>
+    <div class="row" id="top">
+        <div class="col">
+            <input class="form-control" type="text" name="q" placeholder="输入关键词">
+        </div>
+        <div class="col">
+            <button class="btn btn-primary" type="submit">搜索</button>
+        </div>
     </div>
-    {% endfor %}
+</form>
+<a href="#top" class="fixed-bottom">回到顶部</a>
+<div class="row">
+    <div class="col-4">
+        <nav class="navbar navbar-light bg-light flex-column align-items-stretch p-3">
+            {% for title, _ in items %}
+            <nav class="nav nav-pills flex-column">
+                <a class="nav-link" href="#{{title}}">{{title}}</a>
+            </nav>
+            {% endfor %}
+        </nav>
+    </div>
+    <div class="col-8">
+        <div data-bs-spy="scroll" data-bs-offset="0" tabindex="0">
+            {% for title, content in items %}
+            <h4 id="{{title}}">{{title}}</h4>
+            <ul class="list-group">
+                {% for item in content %}
+                <li class="list-group-item"><a href="/query?word={{item}}">{{item}}</a></li>
+                {% endfor %}
+            </ul>
+            {% endfor %}
+        </div>
+    </div>
 </div>
-
 {% endblock %}
