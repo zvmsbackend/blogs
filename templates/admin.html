@@ -16,11 +16,12 @@
                 <li class="nav-item"><a class="nav-link" href="#hitokoto">一言管理</a></li>
                 <li class="nav-item"><a class="nav-link" href="#birthday">生日管理</a></li>
                 <li class="nav-item"><a class="nav-link" href="#notice">发送通知</a></li>
+                <li class="nav-item"><a class="nav-link" href="#aiml">AIML</a></li>
                 <li class="nav-item"><a class="nav-link" href="#issue">反馈</a></li>
             </ul>
         </div>
     </nav>
-    <div style="margin-top: 120px;">
+    <div style="margin-top: 170px;">
         <div id="muyu">
             <form method="POST">
                 <input type="hidden" name="task" value="set-count">
@@ -40,6 +41,10 @@
             <form method="POST">
                 <input type="hidden" name="task" value="set-sound">
                 <button class="btn btn-primary" type="submit">打开/关闭声音</button>
+            </form>
+            <form method="POST">
+                <input type="hidden" name="task" value="set-offline">
+                <button class="btn btn-primary" type="submit">允许/禁止离线</button>
             </form>
         </div>
         <div id="user">
@@ -61,7 +66,7 @@
             </form>
             <form method="POST">
                 <input type="hidden" name="task" value="login">
-                <input class="form-control" type="number" placeholder="输入学号">
+                <input class="form-control" type="number" name="id" placeholder="输入学号">
                 <button class="btn btn-primary" type="submit">登录帐号</button>
             </form>
         </div>
@@ -98,6 +103,8 @@
                 <pre><textarea class="form-control" rows="10" name="html"></textarea></pre>
                 <button type="submit" class="btn btn-primary">发送通知</button>
             </form>
+        </div>
+        <div id="aiml">
         </div>
         <div id="issue">
             <form method="POST">

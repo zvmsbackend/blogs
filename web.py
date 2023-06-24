@@ -1,12 +1,11 @@
 import re
-import os
+import time
 import sys
 import json
-import time
 import sqlite3
 import random
 import hashlib
-import os.path
+import traceback
 from functools import wraps
 from operator import itemgetter
 from datetime import date, datetime
@@ -14,6 +13,9 @@ from datetime import date, datetime
 from flask import Flask, render_template, request, redirect, abort, session
 from flask_cors import CORS
 from bs4.element import Tag
+from tornado.wsgi import WSGIContainer
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
 import requests
 import aiml
 import bs4
@@ -25,16 +27,25 @@ CORS(app, supports_credential=True, resources={"/*", "*"})
 time.clock = time.perf_counter
 kernel = aiml.Kernel()
 kernel.verbose(False)
+kernel.loadBrain('aiml_sets/brain')
 
-for dir in os.listdir('aiml_sets'):
-    for file in os.listdir(os.path.join('aiml_sets', dir)):
-        kernel.learn(os.path.join('aiml_sets', dir, file))
+connection = sqlite3.connect('qncblog.db')
+cursor = connection.cursor()
+cursor.execute('SELECT user, session FROM ai')
+for user, aisession in cursor.fetchall():
+    kernel._sessions[user] = json.loads(aisession)
+    kernel._sessions[user]['_inputStack'] = []
+    for field, flag in (('_inputHistory', 1), ('_outputHistory', 0)):
+        cursor.execute('SELECT content FROM aichat WHERE user = ? AND human = ?', (user, flag))
+        kernel._sessions[user][field] = list(map(itemgetter(0), cursor.fetchall()))
+connection.commit()
+connection.close()
 
-with open('words.txt', encoding='utf-8') as f:
-    words = list(map(str.strip, f))
-    word_groups = [(c.upper(), [w for w in words if w.startswith(c)]) for c in 'abcdefghijklmnopqrstuvwxyz']
+with open('words.txt', encoding='utf-8') as file:
+    words = list(map(str.strip, file))
 
 daily_updated = {
+    'today': date.today(),
     'hitokoto': {},
     'the_wors': '',
     'news': {},
@@ -43,9 +54,16 @@ daily_updated = {
 settings = {
     'state': True,
     'sound': True,
-    'speed': 333
+    'speed': 333,
+    'offline': False
 }
 today = date.today()
+
+def save_updated():
+    tmp = daily_updated.copy()
+    tmp['today'] = tmp['today'].isoformat()
+    with open('assets.json', 'w', encoding='utf-8') as file:
+        json.dump(tmp, file, ensure_ascii=False)
 
 def get_hitokoto():
     try:
@@ -61,10 +79,10 @@ def get_hitokoto():
         'from_who': '系统',
         'from': '错误信息'
     }
+    save_updated()
 
 def update(clear_muyu=True):
-    global today
-    today = date.today()
+    daily_updated['today'] = date.today()
     
     text = requests.get('https://cctv.cn').content.decode()
     soup = bs4.BeautifulSoup(text, 'lxml')
@@ -76,14 +94,19 @@ def update(clear_muyu=True):
     )
     
     res = requests.get('https://bing.com/HPImageArchive.aspx?format=js&idx=0&n=7')
-    daily_updated['wallpapers'] = list(enumerate(json.loads(res.text)['images']))
+    daily_updated['wallpapers'] = []
+    for i, img in enumerate(json.loads(res.text)['images']):
+        daily_updated['wallpapers'].append((i, {
+            'url': 'https://bing.com' + img['url'],
+            'title': img['title'],
+            'copyright': img['copyright']
+        }))
 
     daily_updated['the_word'] = random.choice(words)
     get_hitokoto()
 
-    
-    with open('cache.json', 'w', encoding='utf-8') as file:
-        file.write(json.dumps(daily_updated, ensure_ascii=False))
+    save_updated()
+    print('Updated')
     
     if not clear_muyu:
         return
@@ -92,6 +115,7 @@ def update(clear_muyu=True):
     cursor.execute('DELETE FROM muyu')
     connection.commit()
     connection.close()
+    print('Muyu cleared')
 
 def comp(tag, name, *cls):
     for i in cls:
@@ -171,9 +195,16 @@ def view(fn):
     def wrapper(*args, **kwargs):
         if request.remote_addr == '172.31.33.251':
             abort(500)
-        if date.today() != today:
+        if date.today() != daily_updated['today']:
             update()
-        return fn(*args, **kwargs)
+        try:
+            return fn(*args, **kwargs)
+        except sqlite3.OperationalError:
+            traceback.print_exc()
+            return render_template('error.html', msg='可能数据库被锁了')
+        except Exception as ex:
+            traceback.print_exc()
+            return render_template('error.html', msg='服务器遇到了{}'.format(ex.__class__.__qualname__))
     return wrapper
 
 @app.route('/', methods=['GET', 'POST'])
@@ -184,7 +215,7 @@ def index(cursor: sqlite3.Cursor):
         args = dict.fromkeys(('times', 'issues', 'notices'))
         id = session.get('id')
         if id is not None:
-            cursor.execute('SELECT COUNT(*) FROM issue WHERE author = ? AND time > ?', (id, today))
+            cursor.execute('SELECT COUNT(*) FROM issue WHERE author = ? AND time > ?', (id, daily_updated['today']))
             args['times'] = cursor.fetchone()[0]
             cursor.execute('SELECT content FROM issue WHERE author = ? ORDER BY ID DESC', (id,))
             args['issues'] = map(itemgetter(0), cursor.fetchall())
@@ -212,6 +243,10 @@ def index(cursor: sqlite3.Cursor):
     })
     return redirect('/')
 
+@app.route('/favicon.ico')
+def icon():
+    return redirect('/static/favicon.ico')
+
 @app.route('/issue', methods=['POST'])
 @login_required
 @database_required
@@ -219,7 +254,7 @@ def index(cursor: sqlite3.Cursor):
 def issues(id: int, cursor: sqlite3.Cursor):
     cursor.execute('SELECT COUNT(*) FROM issue WHERE author = ? AND time > ?', (
         id,
-        today
+        daily_updated['today']
     ))
     times = cursor.fetchone()[0]
     if times >= 5:
@@ -398,6 +433,7 @@ def news():
 @view
 def birthday(cursor: sqlite3.Cursor):
     if request.method == 'GET':
+        today = daily_updated['today']
         args = {}
         cursor.execute(
             'SELECT name '
@@ -470,31 +506,24 @@ def msn_weather():
 @app.route('/3500')
 @view
 def words_3500():
-    q = request.args.get('q')
-    if q is None:
-        return render_template('3500.html', items=word_groups)
-    if len(q) < 2:
-        return render_template('error.html', msg='关键词过短')
-    res = [w for w in words if q in w]
-    if len(res) == 1:
-        return redirect('/query?verbose=yes&word=' + res[0])
-    return render_template('3500.html', items=[(f'共搜索到{len(res)}个单词', res)])
+    return render_template('3500.html')
 
 @app.route('/muyu', methods=['GET', 'POST'])
-@login_required
 @database_required
 @view
-def muyu(id: int, cursor: sqlite3.Cursor):
+def muyu(cursor: sqlite3.Cursor):
     if not settings['state']:
         return render_template('error.html', msg='都什么年代了还在抽传统反馈')
+    id = session.get('id')
     if request.method == 'GET':
-        cursor.execute('SELECT count FROM muyu WHERE id = ?', (session.get('id'),))
+        cursor.execute('SELECT count FROM muyu WHERE id = ?', (id,))
         res = cursor.fetchone()
         return render_template(
             'muyu.html', 
             count=0 if res is None else res[0],
             sound=settings['sound'],
-            autospeed=settings['speed']
+            autospeed=settings['speed'],
+            offline=settings['offline']
         )
     count = request.form.get('count')
     if count is None or not count.isnumeric():
@@ -504,7 +533,7 @@ def muyu(id: int, cursor: sqlite3.Cursor):
     cursor.execute('SELECT count FROM muyu WHERE id = ?', (id,))
     res = cursor.fetchone()
     if res is None:
-        cursor.execute('INSERT INTO muyu(id, count) VALUES(?, ?)', (id,count))
+        cursor.execute('INSERT INTO muyu(id, count, anonymous) VALUES(?, ?, 0)', (id, count))
     else:
         cursor.execute('UPDATE muyu SET count = count + ? WHERE id = ?', (count, id))
     return redirect('/muyu')
@@ -550,7 +579,7 @@ def muyu_ranking(cursor: sqlite3.Cursor):
 
 @app.route('/muyu-enabled')
 def muyu_enabled():
-    return 'True' if settings['state'] else ''
+    return 'true' if settings['state'] else 'false'
 
 @app.route('/edit-notices', methods=['GET', 'POST'])
 @database_required
@@ -578,23 +607,30 @@ def edit_notices(cursor: sqlite3.Cursor):
 @database_required
 @view
 def ai(id: int, cursor: sqlite3.Cursor):
-    cursor.execute('SELECT COUNT(*) FROM ai WHERE user = ? AND time > ?', (id, today))
+    cursor.execute('SELECT COUNT(*) FROM aichat WHERE user = ? AND time > ?', (id, today))
     count = cursor.fetchone()[0]
     if request.method == 'GET':
-        cursor.execute('SELECT human, content FROM ai WHERE user = ? ORDER BY time', (id,))
+        cursor.execute('SELECT human, content FROM aichat WHERE user = ? ORDER BY time', (id,))
         res = cursor.fetchall()
         return render_template('ai.html', session=res, count=count, name=session.get('name'))
-    if count >= 20:
+    if count >= 40:
         return render_template('error.html', msg='使用次数过多')
     text = request.form.get('text')
-    if not text or len(text) > 64:
+    if not text or len(text) > 256:
         return render_template('error.html', msg='表单校验错误')
+    if 'sing' in text:
+        return render_template('error.html', msg='你这小子, 想让AIML唱歌是罢')
     now = datetime.now()
-    cursor.execute('INSERT INTO ai(user, human, content, time) VALUES(?, ?, ?, ?)', (id, 1, text, now))
-    response = kernel.respond(text, id)
     if not response:
-        response = 'AIML没有响应'
-    cursor.execute('INSERT INTO ai(user, human, content, time) VALUES(?, ?, ?, ?)', (id, 0, response, now))
+        return render_template('error.html', msg='AIML没有响应')
+    cursor.execute('INSERT INTO aichat(user, human, content, time) VALUES(?, 1, ?, ?)', (id, text, now))
+    cursor.execute('INSERT INTO aichat(user, human, content, time) VALUES(?, 0, ?, ?)', (id, response, now))
+    aisession = json.dumps({k: v for k, v in kernel._sessions[id].items() if k[0] != '_'}, ensure_ascii=False)
+    cursor.execute('SELECT COUNT(*) FROM ai WHERE user = ?', (id,))
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('INSERT INTO ai(user, session) VALUES(?, ?)', (id, aisession))
+    else:
+        cursor.execute('UPDATE ai SET session = ? WHERE user = ?', (aisession, id))
     return redirect('/ai')
 
 @app.route('/admin', methods=['GET', 'POST'])
@@ -633,11 +669,12 @@ def admin(cursor: sqlite3.Cursor):
             return render_template('success.html', msg='通知发送给了{}'.format(target))
         case {'task': 'mod-birthday', 'birthday': birthday, 'target': target}:
             birthday = date.fromisoformat(birthday)
-            for attr in ('year', 'month', 'day'):
-                cursor.execute(
-                    'UPDATE birthday SET {} = ? WHERE id = ?'.format(attr),
-                    (getattr(birthday, attr), target)
-                )
+            cursor.execute(
+                'UPDATE birthday '
+                'SET year = ?, month = ?, day = ? '
+                'WHERE id = ?',
+                (birthday.year, birthday.month, birthday.day, target)
+            )
             return render_template('success.html', msg='修改了' + target)
         case {'task': 'del-birthday', 'target': target}:
             cursor.execute('DELETE FROM birthday WHERE id = ?', (target,))
@@ -671,6 +708,9 @@ def admin(cursor: sqlite3.Cursor):
         case {'task': 'muyu-speed', 'speed': speed}:
             save_settings(speed=speed)
             return render_template('success.html', msg='将木鱼速度设置为{}'.format(speed))
+        case {'task': 'set-offline'}:
+            save_settings(offline=not settings['offline'])
+            return render_template('success.html', msg='木鱼{}允许离线运行'.format('' if settings['offline'] else '不'))
         case {'task': 'clear-issues'}:
             cursor.execute('DELETE FROM issue')
             return render_template('success.html', msg='清除成功')
@@ -680,26 +720,30 @@ def admin(cursor: sqlite3.Cursor):
 def save_settings(**updates):
     settings.update(updates)
     with open('settings.json', 'w', encoding='utf-8') as file:
-        file.write(json.dumps(settings))
+        json.dump(settings, file)
 
 if __name__ == '__main__':
     try:
-        file = open('cache.json', encoding='utf-8')
+        file = open('assets.json', encoding='utf-8')
     except OSError:
         update(False)
     else:
         daily_updated = json.load(file)
+        file.close()
     try:
         file = open('settings.json', encoding='utf-8')
     except OSError:
         ...
     else:
         settings = json.load(file)
+        file.close()
     if len(sys.argv) == 1:
-        port = 1989
+        port = 19198
     else:
         port = int(sys.argv[1])
-    app.run(
-        port=port, 
-        host='0.0.0.0'
-    )
+    #wsgi = WSGIContainer(app)
+    #server = HTTPServer(wsgi)
+    #server.listen(port)
+    print('Server started')
+    app.run(port=port, host='0.0.0.0')
+    #IOLoop.instance().start()

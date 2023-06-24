@@ -55,14 +55,19 @@
         let xhr = new XMLHttpRequest();
         xhr.open('GET', '/muyu-enabled', true);
         xhr.onreadystatechange = function() {
-            if (!xhr.responseBody) {
-                window.close();
+            if (!JSON.parse(xhr.responseText)) {
+                clearTimeout(baz);
+                document.getElementById('container').innerHTML = `
+                <div class="alert alert-danger">
+                <div class="card-body">都什么年代了还在抽传统反馈</div>
+                </div>
+                `;
             }
-        });
+        };
         xhr.send();
-        baz = setTimeout(hearbeat, 5000);
+        baz = setTimeout(heartbeat, 5000);
     }
-    baz = setTimeout(heartbeat, 5000);
+    heartbeat();
     auto.addEventListener('click', (e) => {
         if (!auto.checked) {
             clearTimeout(bar);
@@ -106,6 +111,6 @@
     });
     submit.addEventListener('click', (e) => {
         submit.style = 'display: none;';
-    })
+    });
 </script>
 {% endblock %}

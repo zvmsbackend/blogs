@@ -36,9 +36,31 @@
             <li class="nav-item"><a class="nav-link" href="/ai">机器人重启</a></li>
         </ul>
     </nav>
-    <div id="container" class="container" style="margin-top: 70px;">
+    <div id="container" class="container" style="margin-top: 120px;">
     {% block container %}
     {% endblock %}
     </div>
+    <script>
+        function detectGenshin(input) {
+            let value = input.value.toUpperCase();
+            if (value.includes('原神') || value.includes('GENSHIN')) {
+                document.getElementById('container').innerHTML = `<div class="alert alert-danger">
+                <div class="card-body">我超, 原!</div>
+                </div>`;
+            }
+        }
+        for (let input of document.getElementsByTagName('input')) {
+            input.addEventListener('keydown', (e) => {
+                detectGenshin(input);
+            });
+        }
+        for (let btn of document.getElementsByTagName('button')) {
+            btn.addEventListener('click', (e) => {
+                for (let input of documemt.getElementsByTagName('input')) {
+                    detectGenshin(input);
+                }
+            });
+        }
+    </script>
 </body>
 </html>

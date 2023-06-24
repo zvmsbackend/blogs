@@ -40,10 +40,14 @@ CREATE TABLE IF NOT EXISTS muyu(
     count INT,
     anonymous SMALLINT
 );
-CREATE TABLE IF NOT EXISTS ai(
+CREATE TABLE IF NOT EXISTS aichat(
     id INT PRIMARY KEY,
     user INT,
     human SMALLINT,
     content TEXT,
     time DATETIME
+);
+CREATE TABLE IF NOT EXISTS ai(
+    user INT PRIMARY KEY,
+    session TEXT
 );

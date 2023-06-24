@@ -25,12 +25,12 @@
 {% else %}
 <p>还没有对话过</p>
 {% endif %}
-<p>你今天还有{{20 - count}}次机会</p>
+<p>你今天还有{{20 - count // 2}}次机会</p>
 <form method="POST">
     <label class="form-label">注意: AIML只认识英文</label>
     <div class="form-group">
         <label class="form-label" for="text">消息:</label>
-        <input class="form-control" id="text" name="text" placeholder="输入消息" maxlength="64">
+        <input class="form-control" id="text" name="text" placeholder="输入消息" maxlength="256">
     </div>
     <button class="btn btn-primary" type="submit" id="submit">发送</button>
 </form>
