@@ -5,17 +5,19 @@ import json
 import sqlite3
 import random
 import hashlib
+import logging
 import traceback
+from threading import Lock
 from functools import wraps
 from operator import itemgetter
 from datetime import date, datetime
 
 from flask import Flask, render_template, request, redirect, abort, session
+from tornado.httpserver import HTTPServer
+from tornado.wsgi import WSGIContainer
+from tornado.ioloop import IOLoop
 from flask_cors import CORS
 from bs4.element import Tag
-from tornado.wsgi import WSGIContainer
-from tornado.httpserver import HTTPServer
-from tornado.ioloop import IOLoop
 import requests
 import aiml
 import bs4
@@ -23,6 +25,9 @@ import bs4
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'khfbyu4tgbukys'
 CORS(app, supports_credential=True, resources={"/*", "*"})
+
+logger = logging.getLogger()
+logging.basicConfig(level=logging.INFO)
 
 time.clock = time.perf_counter
 kernel = aiml.Kernel()
@@ -57,7 +62,8 @@ settings = {
     'speed': 333,
     'offline': False
 }
-today = date.today()
+
+lock = Lock()
 
 def save_updated():
     tmp = daily_updated.copy()
@@ -106,7 +112,7 @@ def update(clear_muyu=True):
     get_hitokoto()
 
     save_updated()
-    print('Updated')
+    logger.info('Updated')
     
     if not clear_muyu:
         return
@@ -115,7 +121,7 @@ def update(clear_muyu=True):
     cursor.execute('DELETE FROM muyu')
     connection.commit()
     connection.close()
-    print('Muyu cleared')
+    logger.info('Muyu cleared')
 
 def comp(tag, name, *cls):
     for i in cls:
@@ -170,15 +176,16 @@ def database_required(db: str):
     def deco(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            connection = sqlite3.connect(db)
-            cursor = connection.cursor()
-            try:
-                ret = fn(*args, **kwargs, cursor=cursor)
-                connection.commit()
-                return ret
-            finally:
-                connection.close()
-            abort(500)
+            with lock:
+                connection = sqlite3.connect(db)
+                cursor = connection.cursor()
+                try:
+                    ret = fn(*args, **kwargs, cursor=cursor)
+                    connection.commit()
+                    return ret
+                finally:
+                    connection.close()
+                abort(500)
         return wrapper
     return deco
 
@@ -523,7 +530,7 @@ def muyu(cursor: sqlite3.Cursor):
             count=0 if res is None else res[0],
             sound=settings['sound'],
             autospeed=settings['speed'],
-            offline=settings['offline']
+            offline=('false', 'true')[settings['offline']]
         )
     count = request.form.get('count')
     if count is None or not count.isnumeric():
@@ -579,7 +586,7 @@ def muyu_ranking(cursor: sqlite3.Cursor):
 
 @app.route('/muyu-enabled')
 def muyu_enabled():
-    return 'true' if settings['state'] else 'false'
+    return ('false', 'true')[settings['state']]
 
 @app.route('/edit-notices', methods=['GET', 'POST'])
 @database_required
@@ -607,7 +614,7 @@ def edit_notices(cursor: sqlite3.Cursor):
 @database_required
 @view
 def ai(id: int, cursor: sqlite3.Cursor):
-    cursor.execute('SELECT COUNT(*) FROM aichat WHERE user = ? AND time > ?', (id, today))
+    cursor.execute('SELECT COUNT(*) FROM aichat WHERE user = ? AND time > ?', (id, daily_updated['today']))
     count = cursor.fetchone()[0]
     if request.method == 'GET':
         cursor.execute('SELECT human, content FROM aichat WHERE user = ? ORDER BY time', (id,))
@@ -621,6 +628,7 @@ def ai(id: int, cursor: sqlite3.Cursor):
     if 'sing' in text:
         return render_template('error.html', msg='你这小子, 想让AIML唱歌是罢')
     now = datetime.now()
+    response = kernel.respond(text, id)
     if not response:
         return render_template('error.html', msg='AIML没有响应')
     cursor.execute('INSERT INTO aichat(user, human, content, time) VALUES(?, 1, ?, ?)', (id, text, now))
@@ -741,9 +749,8 @@ if __name__ == '__main__':
         port = 19198
     else:
         port = int(sys.argv[1])
-    #wsgi = WSGIContainer(app)
-    #server = HTTPServer(wsgi)
-    #server.listen(port)
-    print('Server started')
-    app.run(port=port, host='0.0.0.0')
-    #IOLoop.instance().start()
+    wsgi = WSGIContainer(app)
+    server = HTTPServer(wsgi)
+    server.listen(port)
+    logger.info('Server started')
+    IOLoop.instance().start()

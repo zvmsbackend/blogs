@@ -33,6 +33,7 @@
 </div>
 <script>
     const autospeed = {{autospeed}};
+    const offline = {{offline}};
 </script>
 <script>
     const audio = new Audio('/static/misc/muyu.mp3');
@@ -46,16 +47,16 @@
     let count = 0;
     let foo;
     let bar;
-    let baz;
+    //let baz;
     function autoclick() {
         btn.click();
         bar = setTimeout(autoclick, autospeed);
     }
-    function heartbeat() {
+    async function heartbeat() {
         let xhr = new XMLHttpRequest();
         xhr.open('GET', '/muyu-enabled', true);
         xhr.onreadystatechange = function() {
-            if (!JSON.parse(xhr.responseText)) {
+            if ((!offline && xhr.status != 200) || !JSON.parse(xhr.responseText)) {
                 clearTimeout(baz);
                 document.getElementById('container').innerHTML = `
                 <div class="alert alert-danger">
@@ -65,7 +66,7 @@
             }
         };
         xhr.send();
-        baz = setTimeout(heartbeat, 5000);
+        baz = setTimeout(heartbeat, 10000);
     }
     heartbeat();
     auto.addEventListener('click', (e) => {

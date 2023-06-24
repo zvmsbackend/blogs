@@ -1,2 +1,5 @@
 qncblog.db
 __pycache__
+*ipynb*
+assets.json
+settings.json
