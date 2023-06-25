@@ -57,7 +57,7 @@ daily_updated = {
     'wallpapers': []
 }
 settings = {
-    'state': True,
+    'muyu': True,
     'sound': True,
     'speed': 333,
     'offline': False
@@ -226,8 +226,8 @@ def index(cursor: sqlite3.Cursor):
             args['times'] = cursor.fetchone()[0]
             cursor.execute('SELECT content FROM issue WHERE author = ? ORDER BY ID DESC', (id,))
             args['issues'] = map(itemgetter(0), cursor.fetchall())
-            cursor.execute('SELECT html FROM notice WHERE target IS NULL OR target = ? ORDER BY ID DESC', (id,))
-            args['notices'] = map(itemgetter(0), cursor.fetchall())
+        cursor.execute('SELECT html FROM notice WHERE target IS NULL OR target = ? ORDER BY ID DESC', (id,))
+        args['notices'] = map(itemgetter(0), cursor.fetchall())
         return render_template(
             'index.html',
             id=id,
@@ -519,7 +519,7 @@ def words_3500():
 @database_required
 @view
 def muyu(cursor: sqlite3.Cursor):
-    if not settings['state']:
+    if not settings['muyu']:
         return render_template('error.html', msg='都什么年代了还在抽传统反馈')
     id = session.get('id')
     if request.method == 'GET':
@@ -549,7 +549,7 @@ def muyu(cursor: sqlite3.Cursor):
 @database_required
 @view
 def muyu_ranking(cursor: sqlite3.Cursor):
-    if not settings['state']:
+    if not settings['muyu']:
         return render_template('error.html', msg='都什么年代了还在抽传统反馈')
     id = session.get('id')
     if request.method == 'POST':
@@ -586,7 +586,7 @@ def muyu_ranking(cursor: sqlite3.Cursor):
 
 @app.route('/muyu-enabled')
 def muyu_enabled():
-    return ('false', 'true')[settings['state']]
+    return ('false', 'true')[settings['muyu']]
 
 @app.route('/edit-notices', methods=['GET', 'POST'])
 @database_required
@@ -655,11 +655,11 @@ def admin(cursor: sqlite3.Cursor):
             'ON i.author = u.id '
             'ORDER BY i.id DESC'
         )
-        return render_template('admin.html', issues=cursor.fetchall())
+        return render_template('admin.html', issues=cursor.fetchall(), settings=settings)
     match request.form:
         case {'task': 'set-muyu'}:
-            save_settings(state=not settings['state'])
-            return render_template('success.html', msg='木鱼设置为{}'.format(settings['state']))
+            save_settings(state=not settings['muyu'])
+            return render_template('success.html', msg='木鱼设置为{}'.format(settings['muyu']))
         case {'task': 'set-sound'}:
             save_settings(sound=not settings['sound'])
             return render_template('success.html', msg='木鱼声音{}'.format(settings['sound']))

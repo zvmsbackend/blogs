@@ -36,15 +36,15 @@
             </form>
             <form method="POST">
                 <input type="hidden" name="task" value="set-muyu">
-                <button class="btn btn-primary" type="submit">打开/关闭木鱼</button>
+                <button class="btn btn-primary" type="submit">{{'关闭' if settings.muyu else '打开'}}木鱼</button>
             </form>
             <form method="POST">
                 <input type="hidden" name="task" value="set-sound">
-                <button class="btn btn-primary" type="submit">打开/关闭声音</button>
+                <button class="btn btn-primary" type="submit">{{'关闭' if settings.sound else '打开'}}声音</button>
             </form>
             <form method="POST">
                 <input type="hidden" name="task" value="set-offline">
-                <button class="btn btn-primary" type="submit">允许/禁止离线</button>
+                <button class="btn btn-primary" type="submit">{{'禁止' if settings.offline else '允许'}}离线</button>
             </form>
         </div>
         <div id="user">

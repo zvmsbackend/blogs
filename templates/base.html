@@ -17,8 +17,10 @@
             <li class="nav-item">
                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">书籍资源</a>
                 <div class="dropdown-menu">
-                    <a class="dropdown-item" href="/static/hlm/index.html">红楼梦</a>
+                    <a class="dropdown-item" href="/static/dq/index.html">唐吉诃德</a>
+                    <a class="dropdown-item" href="/static/dfz/index.html">杜甫传</a>
                     <a class="dropdown-item" href="/static/xtzg/index.html">乡土中国</a>
+                    <a class="dropdown-item" href="/static/hlm/index.html">红楼梦</a>
                     <a class="dropdown-item" href="/static/gsw/index.html">古诗文</a>
                 </div>
             </li>
@@ -45,7 +47,7 @@
         Emoji键盘
     </button>
     <div class="modal" id="emoji">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-xl">
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title">Emoji键盘</h4>
@@ -58,40 +60,6 @@
           </div>
         </div>
     </div>      
-    <script>
-        let focusedInput;
-        const emoji = document.getElementById('emoji-body');
-        let emojiText = [];
-        function addEmoji(code) {
-            focusedInput.value += String.fromCodePoint(code);
-        }
-        for (let i = 128506; i < 128592; i++) {
-            emojiText.push(`<button type="button" onclick="addEmoji(${i})">&#${i}</button>`);
-        }
-        emoji.innerHTML = emojiText.join('');
-        function detectGenshin(input) {
-            let value = input.value.toUpperCase();
-            if (value.includes('原神') || value.includes('GENSHIN')) {
-                document.getElementById('container').innerHTML = `<div class="alert alert-danger">
-                <div class="card-body">我超, 原!</div>
-                </div>`;
-            }
-        }
-        for (let input of document.getElementsByTagName('input')) {
-            input.addEventListener('keydown', (e) => {
-                detectGenshin(input);
-            });
-            input.addEventListener('click', (e) => {
-                focusedInput = input;
-            });
-        }
-        for (let btn of document.getElementsByTagName('button')) {
-            btn.addEventListener('click', (e) => {
-                for (let input of document.getElementsByTagName('input')) {
-                    detectGenshin(input);
-                }
-            });
-        }
-    </script>
+    <script src="/static/js/index.js"></script>
 </body>
 </html>

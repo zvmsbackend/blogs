@@ -30,7 +30,7 @@
         </ul>
     </div>
     <div class="col">
-        <form action="/mod-pwd" method="POST">
+        <form action="/mod-pwd" method="POST" onsubmit="return validate()">
             <input type="hidden" name="target" value="{{id}}">
             <div class="form-group">
                 <label class="form-label" for="old">旧密码:</label>
@@ -40,16 +40,14 @@
                 <label class="form-label" for="new">新密码:</label>
                 <input class="form-control" type="password" name="new" id="new" placeholder="输入新密码">
             </div>
+            <div class="form-group">
+                <label class="form-label" for="check">确认密码:</label>
+                <input class="form-control" type="password" name="check" id="check" placeholder="输入新密码">
+            </div>
             <button class="btn btn-primary" type="submit">修改密码</button>
         </form>
     </div>
 </div>
-<h2>通知:</h2>
-{% for notice in notices %}
-<div class="card">
-    <div class="card-body">{{notice|safe}}</div>
-</div>
-{% endfor %}
 {% else %}
 <form method="POST">
     <div class="form-group">
@@ -63,10 +61,21 @@
     <button class="btn btn-primary">登录</button>
 </form>
 {% endif %}
+<h2>通知:</h2>
+{% for notice in notices %}
+<div class="card">
+    <div class="card-body">{{notice|safe}}</div>
+</div>
+{% endfor %}
 <script>
     const submit = document.getElementById('submit');
     submit.addEventListener('click', (e) => {
         submit.style = 'display: none;';
     });
+    function validate() {
+        const newPwd = document.getElementById('new').value;
+        const check = document.getElementById('check').value;
+        return newPwd === check;
+    }
 </script>
 {% endblock %}
